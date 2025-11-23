@@ -1,4 +1,6 @@
 import requests
+import allure
+from config.settings import Config
 
 class TestOrderList:
     BASE_URL = 'https://qa-scooter.praktikum-services.ru/api/v1/orders'
