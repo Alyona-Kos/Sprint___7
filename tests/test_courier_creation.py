@@ -1,9 +1,9 @@
 import pytest
 import allure
 import requests
+from config.settings import Config
 from helpers.courier_helper import create_courier_payload
-
-BASE_URL = "https://qa-scooter.praktikum-services.ru/api/v1/courier"
+from data.test_data import CourierData
 
 class TestCourierCreation:
     """Тесты создания курьера"""
@@ -12,7 +12,7 @@ class TestCourierCreation:
     def test_successful_courier_creation_returns_correct_response(self):
         """Успешное создание курьера возвращает правильный код ответа и {"ok":true}"""
         payload = create_courier_payload()
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.COURIER_URL, json=payload)
         
         assert response.status_code == 201
         assert response.json() == {"ok": True}
@@ -20,13 +20,12 @@ class TestCourierCreation:
     @allure.title("Успешное создание курьера без имени")
     def test_successful_courier_creation_without_first_name(self):
         """Успешное создание курьера без имени (firstName не обязателен)"""
-        # Создаем payload без имени
         payload = create_courier_payload(first_name=None)
         
         # Убедимся что firstName не в payload
         assert "firstName" not in payload
         
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.COURIER_URL, json=payload)
         assert response.status_code == 201
         assert response.json() == {"ok": True}
 
@@ -36,12 +35,12 @@ class TestCourierCreation:
         payload = create_courier_payload()
         
         # Первое создание
-        response1 = requests.post(BASE_URL, json=payload)
+        response1 = requests.post(Config.COURIER_URL, json=payload)
         assert response1.status_code == 201
         assert response1.json() == {"ok": True}
         
         # Второе создание с тем же логином
-        response2 = requests.post(BASE_URL, json=payload)
+        response2 = requests.post(Config.COURIER_URL, json=payload)
         assert response2.status_code == 409
         assert "message" in response2.json()
 
@@ -49,10 +48,9 @@ class TestCourierCreation:
     def test_creation_without_login_returns_error(self):
         """Создание курьера без логина возвращает ошибку"""
         payload = create_courier_payload()
-        # Удаляем логин из payload
         del payload["login"]
         
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.COURIER_URL, json=payload)
         assert response.status_code == 400
         assert "message" in response.json()
 
@@ -60,10 +58,9 @@ class TestCourierCreation:
     def test_creation_without_password_returns_error(self):
         """Создание курьера без пароля возвращает ошибку"""
         payload = create_courier_payload()
-        # Удаляем пароль из payload
         del payload["password"]
         
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.COURIER_URL, json=payload)
         assert response.status_code == 400
         assert "message" in response.json()
 
@@ -71,7 +68,7 @@ class TestCourierCreation:
     def test_creation_with_empty_login_returns_error(self):
         """Создание курьера с пустым логином возвращает ошибку"""
         payload = create_courier_payload(login="")
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.COURIER_URL, json=payload)
         assert response.status_code == 400
         assert "message" in response.json()
 
@@ -79,6 +76,6 @@ class TestCourierCreation:
     def test_creation_with_empty_password_returns_error(self):
         """Создание курьера с пустым паролем возвращает ошибку"""
         payload = create_courier_payload(password="")
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.COURIER_URL, json=payload)
         assert response.status_code == 400
         assert "message" in response.json()

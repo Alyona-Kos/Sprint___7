@@ -2,8 +2,7 @@ import pytest
 import allure
 import requests
 import uuid
-
-BASE_URL = "https://qa-scooter.praktikum-services.ru/api/v1/orders"
+from config.settings import Config
 
 class TestOrderCreation:
     """Тесты создания заказа"""
@@ -27,14 +26,14 @@ class TestOrderCreation:
         (["BLACK", "GREY"], "обоими цветами"),
         ([], "без указания цвета")
     ])
-    @allure.title("Создание заказа с разными цветами")
+    @allure.title("Создание заказа с разными цветами - {test_name}")
     def test_create_order_with_different_colors(self, color_data, test_name):
         """Параметризованный тест создания заказа с разными цветами"""
         payload = self.create_valid_order_payload()
         if color_data:
             payload["color"] = color_data
 
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.ORDER_URL, json=payload)
         assert response.status_code == 201
         assert "track" in response.json()
 
@@ -43,7 +42,7 @@ class TestOrderCreation:
         """Создание заказа без имени (API разрешает)"""
         payload = self.create_valid_order_payload()
         del payload["firstName"]
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.ORDER_URL, json=payload)
         assert response.status_code == 201
         assert "track" in response.json()
 
@@ -52,7 +51,7 @@ class TestOrderCreation:
         """Создание заказа без фамилии (API разрешает)"""
         payload = self.create_valid_order_payload()
         del payload["lastName"]
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.ORDER_URL, json=payload)
         assert response.status_code == 201
         assert "track" in response.json()
 
@@ -61,7 +60,7 @@ class TestOrderCreation:
         """Создание заказа без адреса (API разрешает)"""
         payload = self.create_valid_order_payload()
         del payload["address"]
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.ORDER_URL, json=payload)
         assert response.status_code == 201
         assert "track" in response.json()
 
@@ -70,7 +69,7 @@ class TestOrderCreation:
         """Создание заказа без станции метро (API разрешает)"""
         payload = self.create_valid_order_payload()
         del payload["metroStation"]
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.ORDER_URL, json=payload)
         assert response.status_code == 201
         assert "track" in response.json()
 
@@ -79,7 +78,7 @@ class TestOrderCreation:
         """Создание заказа без телефона (API разрешает)"""
         payload = self.create_valid_order_payload()
         del payload["phone"]
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.ORDER_URL, json=payload)
         assert response.status_code == 201
         assert "track" in response.json()
 
@@ -88,7 +87,7 @@ class TestOrderCreation:
         """Создание заказа без времени аренды (API разрешает)"""
         payload = self.create_valid_order_payload()
         del payload["rentTime"]
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.ORDER_URL, json=payload)
         assert response.status_code == 201
         assert "track" in response.json()
 
@@ -97,7 +96,7 @@ class TestOrderCreation:
         """Создание заказа без даты доставки (API разрешает)"""
         payload = self.create_valid_order_payload()
         del payload["deliveryDate"]
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.ORDER_URL, json=payload)
         assert response.status_code == 201
         assert "track" in response.json()
 
@@ -114,7 +113,7 @@ class TestOrderCreation:
             "deliveryDate": "2024-12-31",
             "comment": "Тестовый заказ"
         }
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.ORDER_URL, json=payload)
         assert response.status_code == 201
         assert "track" in response.json()
 
@@ -123,7 +122,7 @@ class TestOrderCreation:
         """Создание заказа с неверным форматом телефона (API разрешает)"""
         payload = self.create_valid_order_payload()
         payload["phone"] = "invalid_phone"
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.ORDER_URL, json=payload)
         assert response.status_code == 201
         assert "track" in response.json()
 
@@ -132,6 +131,6 @@ class TestOrderCreation:
         """Создание заказа с неверной датой доставки"""
         payload = self.create_valid_order_payload()
         payload["deliveryDate"] = "invalid_date"
-        response = requests.post(BASE_URL, json=payload)
+        response = requests.post(Config.ORDER_URL, json=payload)
         # API возвращает 500 для неверной даты
         assert response.status_code == 500

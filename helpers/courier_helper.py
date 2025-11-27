@@ -1,96 +1,58 @@
 import requests
-import random
-import string
+from config.settings import Config
+from data.test_data import CourierData
 
-# метод регистрации нового курьера возвращает список из логина и пароля
-# если регистрация не удалась, возвращает пустой список
+def create_courier_payload(login=None, password=None, first_name=None):
+    """Создает payload для создания курьера"""
+    if login is None:
+        login = CourierData.generate_login()
+    if password is None:
+        password = CourierData.DEFAULT_PASSWORD
+    
+    payload = {
+        "login": login,
+        "password": password
+    }
+    
+    # firstName не является обязательным, добавляем только если указано
+    if first_name is not None:
+        payload["firstName"] = first_name
+    
+    return payload
+
 def register_new_courier_and_return_login_password():
-    # метод генерирует строку, состоящую только из букв нижнего регистра, в качестве параметра передаём длину строки
-    def generate_random_string(length):
-        letters = string.ascii_lowercase
-        random_string = ''.join(random.choice(letters) for i in range(length))
-        return random_string
+    """Метод регистрации нового курьера возвращает список из логина и пароля"""
+    login = CourierData.generate_login()
+    password = CourierData.DEFAULT_PASSWORD
+    first_name = CourierData.DEFAULT_FIRST_NAME
 
-    # создаём список, чтобы метод мог его вернуть
-    login_pass = []
-
-    # генерируем логин, пароль и имя курьера
-    login = generate_random_string(10)
-    password = generate_random_string(10)
-    first_name = generate_random_string(10)
-
-    # собираем тело запроса
     payload = {
         "login": login,
         "password": password,
         "firstName": first_name
     }
 
-    # отправляем запрос на регистрацию курьера и сохраняем ответ в переменную response
-    response = requests.post('https://qa-scooter.praktikum-services.ru/api/v1/courier', data=payload)
+    response = requests.post(Config.COURIER_URL, json=payload)
 
-    # если регистрация прошла успешно (код ответа 201), добавляем в список логин и пароль курьера
+    login_pass = []
     if response.status_code == 201:
         login_pass.append(login)
         login_pass.append(password)
         login_pass.append(first_name)
 
-    # возвращаем список
     return login_pass
-
-
-def create_courier_payload(login=None, password=None, first_name=None):
-    """Создает payload для создания курьера"""
-    def generate_random_string(length):
-        letters = string.ascii_lowercase
-        return ''.join(random.choice(letters) for i in range(length))
-    
-    # используем данные из test_data
-    if login is None:
-        login = generate_random_string(10)
-    if password is None:
-        password = generate_random_string(10)
-    
-    payload = {
-        "login": login,
-        "password": password
-    }
-    # firstName не является обязательным, добавляем только если указано и не равно None
-    if first_name is not None:
-        payload["firstName"] = first_name
-    
-    return payload
-
-
-def create_courier_payload_without_first_name(login=None, password=None):
-    """Создает payload для создания курьера без имени"""
-    def generate_random_string(length):
-        letters = string.ascii_lowercase
-        return ''.join(random.choice(letters) for i in range(length))
-    
-    if login is None:
-        login = generate_random_string(10)
-    if password is None:
-        password = generate_random_string(10)
-    
-    return {
-        "login": login,
-        "password": password
-    }
-
 
 def delete_courier(courier_id):
     """Удаляет курьера по ID"""
     if courier_id:
-        response = requests.delete(f"https://qa-scooter.praktikum-services.ru/api/v1/courier/{courier_id}")
+        response = requests.delete(f"{Config.COURIER_URL}/{courier_id}")
         if response.status_code != 200:
             print(f"Не удалось удалить курьера {courier_id}: {response.status_code}")
-
 
 def get_courier_id(login, password):
     """Получает ID курьера по логину и паролю"""
     payload = {"login": login, "password": password}
-    response = requests.post('https://qa-scooter.praktikum-services.ru/api/v1/courier/login', json=payload)
+    response = requests.post(Config.COURIER_LOGIN_URL, json=payload)
     if response.status_code == 200:
         return response.json()["id"]
     return None
